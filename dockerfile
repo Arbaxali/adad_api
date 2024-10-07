@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the FastAPI app using Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "adadmain:app", "--host", "0.0.0.0", "--port", "80"]
