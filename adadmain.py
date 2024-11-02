@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-
+from google.cloud import translate_v2 as translate
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,9 +39,16 @@ transliteration_mapping = {
 }
 
 
+def translate_text(text, target_language="ur"):
+    translate_client = translate.Client.from_service_account_json(r"modern-nation-436006-p8-e3bfb4e20bd1.json")
+    result = translate_client.translate(text, target_language=target_language)
+    return result["translatedText"]
+
 @app.get("/")
 def home():
     return {"message": "Adad API is running"}
+
+
 
 @app.post("/transliterate")
 async def transliterate_name(request: Request):
@@ -53,14 +60,15 @@ async def transliterate_name(request: Request):
             return JSONResponse({"error": "No name provided"}, status_code=400)
 
         # Determine beam_width based on the number of words
-        beam_width = max(1, len(english_name.split()))
+        # beam_width = max(1, len(english_name.split()))
 
-        logging.info(f"Transliterating '{english_name}' with beam_width={beam_width}")
+        # logging.info(f"Transliterating '{english_name}' with beam_width={beam_width}")
 
-        e = XlitEngine(src_script_type="indic", beam_width=beam_width, rescore=False)
-        urdu_name = e.translit_word(english_name, lang_code="ur", topk=5)
+        # e = XlitEngine(src_script_type="indic", beam_width=beam_width, rescore=False)
+        # urdu_name = e.translit_word(english_name, lang_code="ur", topk=5)
+        urdu_name = translate_text(english_name)
 
-        return JSONResponse({"english_name": english_name, "urdu_name": urdu_name})
+        return JSONResponse({"urdu_name": urdu_name})
 
     except Exception as e:
         logging.error(f"Error during transliteration: {str(e)}")
@@ -102,4 +110,4 @@ async def calculate_adad(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=80)
