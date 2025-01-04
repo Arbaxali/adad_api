@@ -70,7 +70,7 @@ async def transliterate_name(request: Request):
     
     
     
-    api_url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_Key}'
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_Key}"
     
     try:
         data = await request.json()
