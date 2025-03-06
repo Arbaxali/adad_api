@@ -9,7 +9,7 @@ import os
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-load_dotenv()
+# load_dotenv()
 
 app = FastAPI()
 
@@ -52,10 +52,10 @@ transliteration_mapping = {
 
 
 
-API_Key = os.getenv("API_Key")
-print(API_Key)
-if not API_Key:
-    raise RuntimeError("API_KEY is not set in the environment")
+# API_Key = os.getenv("API_Key")
+# print(API_Key)
+# if not API_Key:
+#     raise RuntimeError("API_KEY is not set in the environment")
 
 
 
@@ -70,23 +70,35 @@ async def transliterate_name(request: Request):
     
     
     
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_Key}"
+    # api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_Key}"
+    api_url = "https://tanu360-ai-api.deno.dev/v1/chat/completions"
     
     try:
         data = await request.json()
 
         english_name = data.get('name')
 
-        prompt = f'Translate the name "{english_name}" into Urdu.'
+    #     prompt = f'Translate the name "{english_name}" into Urdu.'
+    #     payload = {
+    # "contents": [
+    #     {
+    #         "parts": [
+    #             {"text": prompt}
+    #             ]
+    #         }
+    #     ]
+    # }
         payload = {
-    "contents": [
-        {
-            "parts": [
-                {"text": prompt}
-                ]
-            }
-        ]
-    }
+            "model": "o3-mini",
+            "stream": False,
+            "messages": [
+                {"role": "system", "content": "You are Marvis, a helpful assistant."},
+                {
+                    "role": "user",
+                    "content": f'Translate the "{english_name}" into urdu. only retun urdu text',
+                },
+            ],
+        }
         print(payload)
         headers = {
             "Content-Type": "application/json"
@@ -95,12 +107,14 @@ async def transliterate_name(request: Request):
         resp = requests.post(api_url, json=payload, headers=headers)
 
         print(resp)
-        response = resp.json()
+        data = resp.json()
         if not english_name:
             return JSONResponse({"error": "No name provided"}, status_code=400)
 
-        
-        result_text = response["candidates"][0]["content"]["parts"][0]["text"]
+        result_text = (
+        data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
+    )
+        # result_text = response["candidates"][0]["content"]["parts"][0]["text"]
         print(result_text)
         return JSONResponse({"urdu_name": result_text })
 
